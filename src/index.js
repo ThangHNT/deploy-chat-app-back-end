@@ -67,12 +67,19 @@ const handleRemoveUserInCall = (userId) => {
     });
 };
 
+const handleCheckUserOnline = (userList, userId) => {
+    return userList.some((item) => {
+        return userId == item.userId;
+    });
+};
+
 io.on('connection', (socket) => {
     const users = [];
     for (let [id, socket] of io.of('/').sockets) {
         users.push({ socketId: id, userId: socket.userId });
     }
     socket.emit('users', users);
+    // console.log(users);
 
     socket.broadcast.emit('user just connected', {
         socketId: socket.id,
@@ -130,11 +137,18 @@ io.on('connection', (socket) => {
     });
 
     socket.on('callUser', ({ sender, receiver, signal, to, from }) => {
-        if (handleCheckUserInCall(receiver) == false) {
+        // console.log(handleCheckUserOnline(users, receiver));
+        if (handleCheckUserInCall(receiver) == false && handleCheckUserOnline(users, receiver)) {
             handleAddUserInCall(sender);
             socket.to(to).to(from).emit('callUser', { sender, signal });
+        } else if (!handleCheckUserOnline(users, receiver)) {
+            // console.log('ng dung ko online');
+            setTimeout(async () => {
+                await socket.emit('user busy', { value: true, msg: 'Người nhận không online' });
+            }, 10000);
         } else {
-            socket.emit('user busy', { value: true });
+            console.log('ng dung ban');
+            socket.emit('user busy', { value: true, msg: 'Người nhận bận' });
         }
     });
 
@@ -144,11 +158,9 @@ io.on('connection', (socket) => {
     });
 
     socket.on('end call', ({ to, from, sender, receiver, msg }) => {
-        if (handleCheckUserInCall(receiver) && handleCheckUserInCall(sender)) {
-            handleRemoveUserInCall(sender);
-            handleRemoveUserInCall(receiver);
-            socket.to(to).to(from).emit('end call', { sender, msg });
-        }
+        handleRemoveUserInCall(sender);
+        handleRemoveUserInCall(receiver);
+        socket.to(to).to(from).emit('end call', { sender, msg });
     });
 
     socket.on('change media', ({ sender, kind, status, to, from }) => {
