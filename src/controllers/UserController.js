@@ -6,7 +6,7 @@ const { createJWT, verifyToken } = require('../middleware/JWT');
 
 class UserController {
     home(req, res, next) {
-        res.send('server running');
+        res.send('server is running');
     }
 
     async login(req, res, next) {
