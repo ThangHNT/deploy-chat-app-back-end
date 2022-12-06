@@ -203,17 +203,19 @@ class UserController {
         });
     }
 
-    updateAccount(req, res) {
+    async updateAccount(req, res) {
         const { userId, username, oldpassword, newpassword, avatar } = req.body;
         // console.log(req.body);
-        User.findOne({ _id: userId }, function (err, user) {
+        User.findOne({ _id: userId }, async function (err, user) {
             user.avatar = avatar ? avatar : user.avatar;
             user.username = username ? username : user.username;
             if (oldpassword && newpassword) {
-                if (user.password != oldpassword) {
+                let checkPassword = await bcrypt.compare(oldpassword, user.password);
+                if (!checkPassword) {
                     return res.json({ status: false, msg: 'Mật khẩu không đúng.' });
                 } else {
-                    user.password = newpassword;
+                    let hashPassword = await bcrypt.hash(newpassword, 10);
+                    user.password = hashPassword;
                 }
             }
             user.save();
