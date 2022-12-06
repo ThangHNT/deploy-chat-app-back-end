@@ -12,15 +12,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json({ limit: '100mb' }));
 
-async function connect() {
-    try {
-        await mongoose.connect('mongodb://localhost:27017/chat');
-        console.log('Connect database successfully');
-    } catch (err) {
-        console.log('connect database failed');
-    }
-}
-connect();
+// async function connect() {
+//     try {
+//         await mongoose.connect('mongodb://localhost:27017/chat');
+//         console.log('Connect database successfully');
+//     } catch (err) {
+//         console.log('connect database failed');
+//     }
+// }
+// connect();
 
 route(app);
 
